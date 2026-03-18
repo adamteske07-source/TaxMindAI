@@ -33,9 +33,9 @@ export default function Home() {
           who can't afford enterprise tools.
         </p>
         <div className="flex gap-4">
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition-colors">
-            Start Research
-          </button>
+          <a href="/chat" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition-colors">
+          Start Research
+          </a>
           <button className="border border-gray-700 hover:border-gray-500 text-gray-300 px-8 py-3 rounded-lg font-medium transition-colors">
             See How It Works
           </button>
