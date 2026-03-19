@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
 
 export default function Chat() {
   const [messages, setMessages] = useState([
@@ -15,6 +14,7 @@ export default function Chat() {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
+
     const userMessage = { role: "user", content: input };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
@@ -32,12 +32,14 @@ export default function Chat() {
           })),
         }),
       });
-      const data = await response.json();
-      const responseText = data.message || data.error || JSON.stringify(data);
-      setMessages((prev) => [
-        ...prev,
+
+        const data = await response.json();
+        console.log("Response data:", data);
+        const responseText = data.message || data.error || JSON.stringify(data);
+        setMessages((prev) => [
+            ...prev,
         { role: "assistant", content: responseText },
-      ]);
+    ]);
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -57,54 +59,28 @@ export default function Chat() {
         </div>
         <span className="text-gray-400 text-sm">🔒 Private Research Session</span>
       </nav>
-
       <div className="flex-1 overflow-y-auto px-4 py-6 max-w-4xl mx-auto w-full">
         {messages.map((msg, i) => (
           <div key={i} className={`mb-6 flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-2xl px-5 py-4 rounded-2xl text-sm leading-relaxed ${msg.role === "user" ? "bg-blue-600 text-white" : "bg-gray-800 text-gray-100 border border-gray-700"}`}>
+            <div className={`max-w-2xl px-5 py-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${msg.role === "user" ? "bg-blue-600 text-white" : "bg-gray-800 text-gray-100 border border-gray-700"}`}>
               {msg.role === "assistant" && (
-                <div className="text-blue-400 text-xs font-semibold mb-3 uppercase tracking-wide">
+                <div className="text-blue-400 text-xs font-semibold mb-2 uppercase tracking-wide">
                   TaxMind AI
                 </div>
               )}
-              {msg.role === "assistant" ? (
-                <div className="prose prose-invert prose-sm max-w-none
-                  prose-headings:text-blue-300 
-                  prose-headings:font-semibold
-                  prose-h1:text-lg
-                  prose-h2:text-base
-                  prose-h3:text-sm
-                  prose-strong:text-white
-                  prose-li:text-gray-200
-                  prose-p:text-gray-200
-                  prose-p:mb-3
-                  prose-ul:my-2
-                  prose-ol:my-2
-                  prose-hr:border-gray-600">
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
-                </div>
-              ) : (
-                msg.content
-              )}
+              {msg.content}
             </div>
           </div>
         ))}
-
         {loading && (
           <div className="flex justify-start mb-6">
             <div className="bg-gray-800 border border-gray-700 px-5 py-4 rounded-2xl text-sm text-gray-400">
               <div className="text-blue-400 text-xs font-semibold mb-2 uppercase tracking-wide">TaxMind AI</div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: "0.1s"}}></div>
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: "0.2s"}}></div>
-                <span className="ml-2">Researching tax law...</span>
-              </div>
+              Researching tax law...
             </div>
           </div>
         )}
       </div>
-
       <div className="border-t border-gray-800 px-4 py-4">
         <div className="max-w-4xl mx-auto flex gap-3">
           <input
