@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
         max_tokens: 1024,
-        system: "You are TaxMind AI, a tax research assistant for small CPA firms. Always cite IRC sections.",
+        system: "You are TaxMind AI, an expert tax research assistant for small CPA firms. Always cite IRC sections.",
         messages: [{ role: "user", content: lastMessage }]
       })
     });
