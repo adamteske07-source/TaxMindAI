@@ -8,6 +8,8 @@ function redactPII(text: string): { redacted: string; piiFound: string[] } {
   return { redacted, piiFound };
 }
 
+export const runtime = "nodejs";
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -16,21 +18,17 @@ export async function POST(request: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
     
-    // Extract text by looking for readable strings in the PDF buffer
-    const rawText = buffer.toString("latin1");
-    const textMatches = rawText.match(/\(([^\)]{2,})\)/g) || [];
-    let extractedText = textMatches
-      .map(m => m.slice(1, -1))
-      .filter(t => /[a-zA-Z0-9]/.test(t))
-      .join(" ");
-
-    // Fallback: try reading as utf8
-    if (extractedText.length < 50) {
-      extractedText = buffer.toString("utf8").replace(/[^\x20-\x7E\n]/g, " ").replace(/\s+/g, " ");
+    let extractedText = "";
+    try {
+      const pdf = require("pdf-parse");
+      const data = await pdf(buffer);
+      extractedText = data.text;
+    } catch (e) {
+      console.error("pdf-parse error:", e);
     }
 
     if (!extractedText || extractedText.trim().length < 20) {
-      return NextResponse.json({ error: "Could not extract text from this PDF. It may be a scanned/image-only document." }, { status: 400 });
+      return NextResponse.json({ error: "Could not extract text from this PDF. Please ensure it is a text-based PDF, not a scanned image." }, { status: 400 });
     }
 
     const { redacted, piiFound } = redactPII(extractedText);
