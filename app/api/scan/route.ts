@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import * as pdfParse from "pdf-parse";
 
 function redactPII(text: string): { redacted: string; piiFound: string[] } {
   let redacted = text;
   const piiFound: string[] = [];
-  const ssnPattern = /\b\d{3}-\d{2}-\d{4}\b/g;
-  const einPattern = /\b\d{2}-\d{7}\b/g;
-  if (ssnPattern.test(redacted)) { piiFound.push("SSN"); redacted = redacted.replace(/\b\d{3}-\d{2}-\d{4}\b/g, "[SSN REDACTED]"); }
-  if (einPattern.test(redacted)) { piiFound.push("EIN"); redacted = redacted.replace(/\b\d{2}-\d{7}\b/g, "[EIN REDACTED]"); }
+  if (/\b\d{3}-\d{2}-\d{4}\b/.test(redacted)) { piiFound.push("SSN"); redacted = redacted.replace(/\b\d{3}-\d{2}-\d{4}\b/g, "[SSN REDACTED]"); }
+  if (/\b\d{2}-\d{7}\b/.test(redacted)) { piiFound.push("EIN"); redacted = redacted.replace(/\b\d{2}-\d{7}\b/g, "[EIN REDACTED]"); }
   return { redacted, piiFound };
 }
 
@@ -18,8 +17,7 @@ export async function POST(request: NextRequest) {
     const buffer = await file.arrayBuffer();
     let extractedText = "";
     try {
-      const pdfParse = (await import("pdf-parse")).default;
-      const pdfData = await pdfParse(Buffer.from(new Uint8Array(buffer)));
+      const pdfData = await (pdfParse as any)(Buffer.from(new Uint8Array(buffer)));
       extractedText = pdfData.text;
     } catch {
       return NextResponse.json({ error: "Could not read PDF." }, { status: 400 });
