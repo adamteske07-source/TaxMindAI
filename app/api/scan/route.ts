@@ -8,31 +8,11 @@ function redactPII(text: string): { redacted: string; piiFound: string[] } {
   return { redacted, piiFound };
 }
 
-export const runtime = "nodejs";
-
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData();
-    const file = formData.get("file") as File;
-    if (!file) return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
-
-    const buffer = Buffer.from(await file.arrayBuffer());
-    
-    let extractedText = "";
-    try {
-      const pdf = require("pdf-parse");
-      const data = await pdf(buffer);
-      extractedText = data.text;
-    } catch (e) {
-      console.error("pdf-parse error:", e);
-    }
-
-    if (!extractedText || extractedText.trim().length < 20) {
-      return NextResponse.json({ error: "Could not extract text from this PDF. Please ensure it is a text-based PDF, not a scanned image." }, { status: 400 });
-    }
-
-    const { redacted, piiFound } = redactPII(extractedText);
-
+    const { text } = await request.json();
+    if (!text || text.trim().length < 20) return NextResponse.json({ error: "No text provided" }, { status: 400 });
+    const { redacted, piiFound } = redactPII(text);
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-api-key": process.env.ANTHROPIC_API_KEY || "", "anthropic-version": "2023-06-01" },
@@ -43,7 +23,6 @@ export async function POST(request: NextRequest) {
         messages: [{ role: "user", content: "Analyze this tax document:\n\n" + redacted.substring(0, 8000) }]
       })
     });
-
     const data = await response.json();
     const analysis = data.content?.[0]?.text || "Could not generate analysis";
     return NextResponse.json({ analysis, piiRedacted: piiFound });
